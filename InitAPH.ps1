@@ -1,11 +1,11 @@
-$downloadUrl = "https://github.com/addreeh/InitAPH/raw/main/Wpf.Ui.dll"
-$tempDllPath = "$ENV:temp\Wpf.Ui.dll"
+# $downloadUrl = "https://github.com/addreeh/InitAPH/raw/main/Wpf.Ui.dll"
+# $tempDllPath = "$ENV:temp\Wpf.Ui.dll"
 
-Invoke-WebRequest -Uri $downloadUrl -OutFile $tempDllPath
-Add-Type -LiteralPath $tempDllPath
+# Invoke-WebRequest -Uri $downloadUrl -OutFile $tempDllPath
+# Add-Type -LiteralPath $tempDllPath
 
 Add-Type -AssemblyName PresentationFramework
-# Add-Type -LiteralPath "./Wpf.Ui.dll"
+Add-Type -LiteralPath "./Wpf.Ui.dll"
 
 # XAML string
 $xaml = @"
