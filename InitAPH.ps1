@@ -10,10 +10,12 @@ if (-Not (Test-Path -Path $pathToDll)) {
     $log = Get-ChildItem $pathToDll
     Write-Host $log
     exit
+} else {
+    Write-Host "Hay DLL"
 }
 
 Add-Type -AssemblyName PresentationFramework
-Add-Type -LiteralPath "$PSScriptRoot\Wpf.Ui.dll"
+Add-Type -LiteralPath "$PSScriptRoot/Wpf.Ui.dll"
 
 # XAML string
 $xaml = @"
