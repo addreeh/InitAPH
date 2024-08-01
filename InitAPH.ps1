@@ -1,15 +1,11 @@
-# URL del archivo DLL que deseas descargar
 $downloadUrl = "https://github.com/addreeh/InitAPH/raw/main/Wpf.Ui.dll"
-
-# Ruta temporal para guardar el archivo DLL
 $tempDllPath = "$ENV:temp\Wpf.Ui.dll"
 
-# Descargar el archivo DLL
 Invoke-WebRequest -Uri $downloadUrl -OutFile $tempDllPath
+Add-Type -LiteralPath $tempDllPath
 
 Add-Type -AssemblyName PresentationFramework
 # Add-Type -LiteralPath "./Wpf.Ui.dll"
-Add-Type -LiteralPath $tempDllPath
 
 # XAML string
 $xaml = @"
@@ -48,7 +44,7 @@ $xaml = @"
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="30,5,0,0">
             <StackPanel x:Name="CheckBoxPanel"/>
         </ScrollViewer>
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" x:Name="ButtonRow">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -56,6 +52,20 @@ $xaml = @"
             </Grid.ColumnDefinitions>
             <Button Grid.Column="0" Margin="30,0,0,20" Content="Select All" x:Name="SelectAll" HorizontalAlignment="Left"/>
             <Button Grid.Column="2" Margin="0,0,30,20" Content="Install" x:Name="Install" HorizontalAlignment="Right" IsEnabled="False"/>
+        </Grid>
+        <Grid Grid.Row="2" Visibility="Collapsed" x:Name="ProgressGrid">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="Instalando los paquetes seleccionados" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <ProgressBar Grid.Row="1" x:Name="ProgressBar" IsIndeterminate="True" Margin="30,20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        </Grid>
+        <Grid Grid.Row="2" Visibility="Collapsed" x:Name="TextInstalled">
+            <TextBlock Grid.Row="0" Text="Paquetes instalados" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,30"/>
         </Grid>
     </Grid>
 </ui:FluentWindow>
@@ -72,18 +82,18 @@ $packages = @{
         "name" = "Web Dev"
         "apps" = @(
             @{ "id" = "Microsoft.VisualStudioCode"; "name" = "Visual Studio Code"; "winget" = $true },
-            @{ "id" = "VSCodium"; "name" = "Visual Studio Codium"; "winget" = $true },
-            @{ "id" = "OpenJS"; "name" = "NodeJS"; "winget" = $true },
-            @{ "id" = "pnpm"; "name" = "pnpm"; "winget" = $true },
-            @{ "id" = "Git"; "name" = "Git"; "winget" = $true }
+            @{ "id" = "VSCodium"; "fullId" = "VSCodium.VSCodium"; "name" = "Visual Studio Codium"; "winget" = $true },
+            @{ "id" = "OpenJS"; "fullId" = "OpenJS.NodeJS"; "name" = "NodeJS"; "winget" = $true },
+            @{ "id" = "pnpm"; "fullId" = "pnpm.pnpm"; "name" = "pnpm"; "winget" = $true },
+            @{ "id" = "Git"; "fullId" = "Git.Git"; "name" = "Git"; "winget" = $true }
         )
     };
     "daily"  = @{
         "name" = "Daily Use"
         "apps" = @(
-            @{ "id" = "Brave"; "name" = "Brave Browser"; "winget" = $true },
-            @{ "id" = "7zip"; "name" = "7zip"; "winget" = $true },
-            @{ "id" = "Discord"; "name" = "Discord"; "winget" = $true },
+            @{ "id" = "Brave"; "fullId" = "Brave.Brave"; "name" = "Brave Browser"; "winget" = $true },
+            @{ "id" = "7zip"; "fullId" = "7zip.7zip"; "name" = "7zip"; "winget" = $true },
+            @{ "id" = "Discord"; "fullId" = "Discord.Discord"; "name" = "Discord"; "winget" = $true },
             @{ "id" = "voidtools.Everything.Alpha"; "name" = "Everything"; "winget" = $true }
         )
     };
@@ -99,7 +109,7 @@ $packages = @{
     "lenovo" = @{
         "name" = "Lenovo"
         "apps" = @(
-            @{ "id" = "BartoszCichecki"; "name" = "Lenovo Legion Toolkit"; "winget" = $true }
+            @{ "id" = "BartoszCichecki"; "fullId" = "BartoszCichecki.LenovoLegionToolkit"; "name" = "Lenovo Legion Toolkit"; "winget" = $true }
         )
     }
 }
@@ -287,8 +297,6 @@ foreach ($category in $packages.Keys) {
         $packageDescription = $package["description"]
         $packageHomepage = $package["homepage"]
 
-        Write-Host $packageName
-
         if ($packageVersion.Length -eq 0) {
             $packageVersion = "X.X"
         }
@@ -441,68 +449,30 @@ $SelectAllButton.Add_Click({
         }
     })    
 
-$FlyoutButton = $window.FindName("FlyoutButton")
-
 $installablePackages = New-Object System.Collections.Generic.List[PSObject]
 $nonInstallablePackages = New-Object System.Collections.Generic.List[PSObject]
 
-$installXAML = @"
-<ui:FluentWindow xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    WindowCornerPreference="Round"
-    WindowStartupLocation="CenterScreen"
-    x:Name="Window" Height="100" Width="100">
-    <ui:FluentWindow.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ui:ThemesDictionary Theme="Dark"/>
-                <ui:ControlsDictionary/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </ui:FluentWindow.Resources>
-    <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <TextBlock x:Name="StatusTextBlock" Grid.Row="0" Text="Instalando Winget" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-        <ProgressBar x:Name="ProgressBar" Grid.Row="1" IsIndeterminate="True" Margin="0,40,0,0"/>
-    </Grid>
-</ui:FluentWindow>
-"@
-
-# Load the XAML
-[xml]$installXamlXml = $installXAML
-$reader = (New-Object System.Xml.XmlNodeReader $installXamlXml)
-$installWindow = [Windows.Markup.XamlReader]::Load($reader)
-
-# Find the TextBlock control
-$StatusTextBlock = $installWindow.FindName("StatusTextBlock")
-
-# Function to update the TextBlock text
-function Update-StatusText {
-    param (
-        [string]$newText
-    )
-    $StatusTextBlock.Dispatcher.Invoke([Action] {
-            $StatusTextBlock.Text = $newText
-        })
-}
-
+# Evento del botón de instalación
 $InstallButton = $window.FindName("Install")
+$ButtonRow = $window.FindName("ButtonRow")
+$ProgressGrid = $window.FindName("ProgressGrid")
+$TextInstalled = $window.FindName("TextInstalled")
+
 $InstallButton.Add_Click({
-        Write-Host "pepe"
-        $installWindow.Show()
-        Install-All
+        $ButtonRow.Visibility = "Collapsed"
+        $ProgressGrid.Visibility = "Visible"
+        # $window.Dispatcher.Invoke([Action] {
+            Install-All
+            # $ProgressBar.Visibility = "Collapsed"
+        # })
+        
+        # $TextInstalled.Visibility = "Visible"
     })
 
 function Install-Winget {
     # Check if Winget is installed
     if (!(Get-Command winget -ErrorAction SilentlyContinue)) {
         Write-Host "Winget is not installed. Attempting to install..."
-
-        Update-StatusText -newText "Installing Winget..."
                 
         $latestWingetMsixBundleUri = $(Invoke-RestMethod https://api.github.com/repos/microsoft/winget-cli/releases/latest).assets.browser_download_url | Where-Object { $_.EndsWith(".msixbundle") }
         $latestWingetMsixBundle = $latestWingetMsixBundleUri.Split("/")[-1]
@@ -520,17 +490,14 @@ function Install-Winget {
         Write-Host "Winget ya está instalado"
     }
 
-    Update-StatusText -newText "Winget instalado"
 }
 
 function Install-Applications {
     param (
         [array]$applications
     )
-    Update-StatusText -newText "Instalando aplicaciones..."
 
     foreach ($app in $applications) {
-        Update-StatusText -newText "Instalando $($app.name)"
         Write-Host "Verificando si $($app.Name) ya está instalado..."
 
         $isInstalled = winget list --id $app.ID | Select-String $app.ID
@@ -542,8 +509,8 @@ function Install-Applications {
             Write-Host "Instalando $($app.Name)..."
             
             # Ejecutar el proceso de instalación y esperar a que termine
-            winget install $app.Id --silent
-                
+            winget install $app.Id
+
             # Verificar el código de salida del proceso
             if ($LASTEXITCODE -eq 0) {
                 Write-Host "$($app.Name) instalado correctamente."
@@ -556,7 +523,6 @@ function Install-Applications {
 }
 
 function Install-Vencord {
-    Update-StatusText -newText "Instalando Vencord..."
     
     $urlCliInstaller = "https://github.com/Vencord/Installer/releases/latest/download/VencordInstallerCli.exe"
     
@@ -590,15 +556,11 @@ function Install-Vencord {
     }
 }
 
-function Install-SpotX {
-    Update-StatusText -newText "Instalando SpotX..."
-    
+function Install-SpotX {    
     Invoke-Expression "& { $(Invoke-WebRequest -useb 'https://raw.githubusercontent.com/SpotX-Official/spotx-official.github.io/main/run.ps1') } -confirm_uninstall_ms_spoti -confirm_spoti_recomended_over -podcasts_off -block_update_on -start_spoti -new_theme -adsections_off -lyrics_stat spotify"
 }
 
-function Install-OOSU10 {
-    Update-StatusText -newText "Instalando OOSU10..."
-    
+function Install-OOSU10 {    
     try {
         $OOSU_filepath = "$ENV:temp\OOSU10.exe"
         Invoke-WebRequest -Uri "https://dl5.oo-software.com/files/ooshutup10/OOSU10.exe" -OutFile $OOSU_filepath
@@ -631,7 +593,6 @@ function Install-NonApplications {
         # Verificar si la función existe antes de llamarla
         if (Get-Command -Name $functionName -CommandType Function -ErrorAction SilentlyContinue) {
             Write-Host "Calling function: $functionName"
-            Update-StatusText -newText "Instalando $($app.Name)..."
             & $functionName
         }
         else {
@@ -640,22 +601,36 @@ function Install-NonApplications {
     }
 }
 
+function Hide-Elements {
+    Write-Host "PEPE"
+    $window.Dispatcher.Invoke([Action]{
+        $ButtonRow.Visibility = "Collapsed"
+        $ProgressGrid.Visibility = "Visible"
+    }, [System.Windows.Threading.DispatcherPriority]::Render)
+}
+
+function Show-Elements {
+    Write-Host "JOSE"
+    $window.Dispatcher.Invoke([Action]{
+        $TextInstalled.Visibility = "Visible"
+        $ProgressGrid.Visibility = "Collapsed"
+    }, [System.Windows.Threading.DispatcherPriority]::Render)
+}
+
 function Install-All {
     Write-Host "DENTRO"
-    Update-StatusText -newText "Instalando aplicaciones..."
+    
+    Hide-Elements
 
     foreach ($category in $packages.Keys) {
         foreach ($package in $packages[$category]["apps"]) {
-            # Encontrar el CheckBox correspondiente para este paquete
             $checkBox = $CheckBoxPanel.Children | Where-Object { $_.Tag -eq "$category-$($package["id"])" }
 
-            # Verificar si el CheckBox está marcado
             if ($checkBox -and $checkBox.IsChecked -eq $true) {
-                # Agregar el paquete al array de paquetes seleccionados
                 if ($package["winget"] -eq $true) {
                     $installablePackages.Add([PSCustomObject]@{
                             Name = $package["name"]
-                            ID   = $package["id"]
+                            ID   = $package["fullId"]
                         })
                 }
                 else {
@@ -664,8 +639,6 @@ function Install-All {
                             ID   = $package["id"]
                         })
                 }
-
-                # Opcionalmente, puedes imprimir la información
                 Write-Host "Selected: $($package["name"]) (ID: $($package["id"]))"
             }
         }
@@ -677,7 +650,7 @@ function Install-All {
     Install-Applications $installablePackages
     Install-NonApplications $nonInstallablePackages
 
-    Update-StatusText -newText "Instalación completada"
+    Show-Elements
 }
 
 # Mostrar la ventana
