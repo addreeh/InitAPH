@@ -4,6 +4,14 @@
 # Invoke-WebRequest -Uri $downloadUrl -OutFile $tempDllPath
 # Add-Type -LiteralPath $tempDllPath
 
+$pathToDll = Join-Path -Path $PSScriptRoot -ChildPath "Wpf.Ui.dll"
+if (-Not (Test-Path -Path $pathToDll)) {
+    Write-Error "El archivo DLL no se encuentra en la ruta: $pathToDll"
+    $log = Get-ChildItem $pathToDll
+    Write-Host $log
+    exit
+}
+
 Add-Type -AssemblyName PresentationFramework
 Add-Type -LiteralPath "$PSScriptRoot\Wpf.Ui.dll"
 
