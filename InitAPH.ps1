@@ -5,7 +5,7 @@
 # Add-Type -LiteralPath $tempDllPath
 
 Add-Type -AssemblyName PresentationFramework
-Add-Type -LiteralPath "./Wpf.Ui.dll"
+Add-Type -LiteralPath "$env:TEMP\InitAPH\InitAPH-main\Wpf.Ui.dll"
 
 # XAML string
 $xaml = @"
