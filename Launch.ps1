@@ -1,10 +1,7 @@
 $repoUrl = "https://github.com/addreeh/InitAPH/archive/refs/heads/main.zip"
 $downloadPath = "$env:TEMP\InitAPH.zip"
 $baseExtractPath = "$env:TEMP\InitAPH"
-
-Write-Host $PSScriptRoot
-
-$scriptToRun = "$PSScriptRoot/InitAPH.ps1"
+$scriptToRun = "InitAPH.ps1"
 
 # Función para verificar si se está utilizando PowerShell 7
 function Is-PowerShell7 {
@@ -28,7 +25,6 @@ function Install-PowerShell7 {
 # Función para ejecutar el script con PowerShell 7
 function Run-With-PowerShell7 {
     $pwshPath = "$env:ProgramFiles\PowerShell\7\pwsh.exe"
-    $scriptPath = "$PSScriptRoot\$scriptToRun"
 
     if (Test-Path $pwshPath) {
         Write-Output "Ejecutando el script con PowerShell 7..."
@@ -38,25 +34,9 @@ function Run-With-PowerShell7 {
     }
 }
 
-Write-Output "El script se esta ejecutando desde $PSScriptRoot"
+Write-Output "El script se está ejecutando desde: $PSScriptRoot"
 
-# Verificar si PowerShell 7 está instalado en el sistema
-$pwshPath = "$env:ProgramFiles\PowerShell\7\pwsh.exe"
-
-if (-not (Is-PowerShell7) -and -not (Test-Path $pwshPath)) {
-    Write-Output "PowerShell 7 no está instalado o no se está utilizando. Procediendo con la instalación..."
-    Install-PowerShell7
-
-    Write-Output "Reiniciando el script con PowerShell 7..."
-    Run-With-PowerShell7
-    exit
-} elseif (-not (Is-PowerShell7) -and (Test-Path $pwshPath)) {
-    Write-Output "PowerShell 7 está instalado pero no se está utilizando. Reiniciando el script con PowerShell 7..."
-    Run-With-PowerShell7
-    exit
-}
-
-# Continuar con la descarga y ejecución del script
+# Continuar con la descarga y descompresión del repositorio
 if (Test-Path -Path $downloadPath) {
     Write-Host "El archivo ZIP ya existe, eliminando..."
     Remove-Item -Path $downloadPath -Force
@@ -82,7 +62,26 @@ Expand-Archive -Path $downloadPath -DestinationPath $extractPath
 $repoFolder = Get-ChildItem -Path $extractPath | Where-Object { $_.PSIsContainer } | Select-Object -First 1
 $scriptPath = Join-Path -Path $repoFolder.FullName -ChildPath $scriptToRun
 
+# Verificar si PowerShell 7 está instalado y ejecutar el script con PowerShell 7 si es necesario
 if (Test-Path -Path $scriptPath) {
+    Write-Output "Verificando la versión de PowerShell..."
+
+    # Verificar si PowerShell 7 está instalado en el sistema
+    $pwshPath = "$env:ProgramFiles\PowerShell\7\pwsh.exe"
+
+    if (-not (Is-PowerShell7) -and -not (Test-Path $pwshPath)) {
+        Write-Output "PowerShell 7 no está instalado o no se está utilizando. Procediendo con la instalación..."
+        Install-PowerShell7
+
+        Write-Output "Reiniciando el script con PowerShell 7..."
+        Run-With-PowerShell7
+        exit
+    } elseif (-not (Is-PowerShell7) -and (Test-Path $pwshPath)) {
+        Write-Output "PowerShell 7 está instalado pero no se está utilizando. Reiniciando el script con PowerShell 7..."
+        Run-With-PowerShell7
+        exit
+    }
+
     Write-Output "Ejecutando el script $scriptPath..."
     & $scriptPath
 } else {
