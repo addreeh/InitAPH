@@ -3,6 +3,14 @@ $downloadPath = "$env:TEMP\InitAPH.zip"
 $extractPath = "$env:TEMP\InitAPH"
 $scriptToRun = "InitAPH.ps1"
 
+if (Test-Path -Path $downloadPath) {
+    Remove-Item -Path $downloadPath -Force
+}
+
+if (Test-Path -Path $extractPath) {
+    Remove-Item -Path $extractPath -Recurse -Force
+}
+
 if (-Not (Test-Path -Path $extractPath)) {
     New-Item -ItemType Directory -Path $extractPath
 }
@@ -22,8 +30,5 @@ if (Test-Path -Path $scriptPath) {
 } else {
     Write-Output "El script $scriptToRun no se encontró en el repositorio descomprimido."
 }
-
-Remove-Item -Path $downloadPath -Force
-Remove-Item -Path $extractPath -Recurse -Force
 
 Write-Output "Proceso completado."
