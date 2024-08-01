@@ -1,7 +1,10 @@
 $repoUrl = "https://github.com/addreeh/InitAPH/archive/refs/heads/main.zip"
 $downloadPath = "$env:TEMP\InitAPH.zip"
 $baseExtractPath = "$env:TEMP\InitAPH"
-$scriptToRun = "InitAPH.ps1"
+
+Write-Host $PSScriptRoot
+
+$scriptToRun = "$PSScriptRoot/InitAPH.ps1"
 
 # Función para verificar si se está utilizando PowerShell 7
 function Is-PowerShell7 {
