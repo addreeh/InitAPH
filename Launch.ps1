@@ -35,7 +35,7 @@ function Run-With-PowerShell7 {
     }
 }
 
-Write-Output "El script se está ejecutando desde: $PSScriptRoot"
+Write-Output "El script se esta ejecutando desde $PSScriptRoot"
 
 # Verificar si PowerShell 7 está instalado en el sistema
 $pwshPath = "$env:ProgramFiles\PowerShell\7\pwsh.exe"
