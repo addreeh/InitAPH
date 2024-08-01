@@ -128,38 +128,12 @@ $packages = @{
 $global:PackageInfo = @{}
 
 
-foreach ($package in $packages.GetEnumerator()) {
-    $packageName = $package.Value.name
-    $apps = $package.Value.apps
-    foreach ($app in $apps) {
-        if ($app.winget -eq $true) {
-            $info = Get-WingetPackageInfo $app.id
-            # Write-Host "INFO $info"
-            $app.publisher = $info.Publisher
-            $app.version = $info.LatestVersion
-            $app.description = $info.Description
-            $app.homepage = $info.HomePage
-        }
-    }
-}
-
-    
-# foreach ($entry in $global:PackageInfo.GetEnumerator()) {
-#     $packageId = $entry.Key
-#     $packageInfo = $entry.Value
-
-#     Write-Host "Package ID: $packageId"
-#     Write-Host "Name: $($packageInfo.Name)"
-#     Write-Host "Publisher: $($packageInfo.Publisher)"
-#     Write-Host "Latest Version: $($packageInfo.LatestVersion.Version)"
-#     Write-Host "Description: $($packageInfo.Description)"
-#     Write-Host "-------------"
-# }
-
 function Get-WingetPackageInfo {
     param (
         [string]$packageId
     )
+
+    Write-Host "ESTAMOS DENTRO"
 
     $apiUrl = "https://api.winget.run/v2/packages/$packageId"
 
@@ -198,6 +172,8 @@ function Get-WingetPackageInfo {
             HomePage      = $package.Latest.Homepage
         }
 
+        Write-Host "INFO $packageInfo"
+
         # Write-Host $packageInfo
         
         # Guardar la información en la variable global
@@ -210,6 +186,36 @@ function Get-WingetPackageInfo {
         return $null
     }
 }
+
+
+
+foreach ($package in $packages.GetEnumerator()) {
+    $packageName = $package.Value.name
+    $apps = $package.Value.apps
+    foreach ($app in $apps) {
+        if ($app.winget -eq $true) {
+            $info = Get-WingetPackageInfo $app.id
+            # Write-Host "INFO $info"
+            $app.publisher = $info.Publisher
+            $app.version = $info.LatestVersion
+            $app.description = $info.Description
+            $app.homepage = $info.HomePage
+        }
+    }
+}
+
+    
+# foreach ($entry in $global:PackageInfo.GetEnumerator()) {
+#     $packageId = $entry.Key
+#     $packageInfo = $entry.Value
+
+#     Write-Host "Package ID: $packageId"
+#     Write-Host "Name: $($packageInfo.Name)"
+#     Write-Host "Publisher: $($packageInfo.Publisher)"
+#     Write-Host "Latest Version: $($packageInfo.LatestVersion.Version)"
+#     Write-Host "Description: $($packageInfo.Description)"
+#     Write-Host "-------------"
+# }
 
 function Show-PackageInfoById {
     param (
