@@ -5,6 +5,7 @@
 # Add-Type -LiteralPath $tempDllPath
 
 $pathToDll = Join-Path -Path $PSScriptRoot -ChildPath "Wpf.Ui.dll"
+Write-Host $pathToDll
 if (-Not (Test-Path -Path $pathToDll)) {
     Write-Error "El archivo DLL no se encuentra en la ruta: $pathToDll"
     $log = Get-ChildItem $pathToDll
@@ -15,7 +16,7 @@ if (-Not (Test-Path -Path $pathToDll)) {
 }
 
 Add-Type -AssemblyName PresentationFramework
-Add-Type -LiteralPath "$PSScriptRoot/Wpf.Ui.dll"
+Add-Type -LiteralPath $pathToDll
 
 # XAML string
 $xaml = @"
