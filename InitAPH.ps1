@@ -133,8 +133,6 @@ function Get-WingetPackageInfo {
         [string]$packageId
     )
 
-    Write-Host "ESTAMOS DENTRO"
-
     $apiUrl = "https://api.winget.run/v2/packages/$packageId"
 
     if ($packageId -eq "Microsoft.VisualStudioCode") {
@@ -171,8 +169,6 @@ function Get-WingetPackageInfo {
             Description   = $package.Latest.Description
             HomePage      = $package.Latest.Homepage
         }
-
-        Write-Host "INFO $packageInfo"
 
         # Write-Host $packageInfo
         
